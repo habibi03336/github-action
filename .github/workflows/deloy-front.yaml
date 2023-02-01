@@ -38,7 +38,7 @@ jobs:
 
       - name: Make zip file
         working-directory: ./frontend
-        run: zip -r ./build.zip ./build
+        run: zip -r ./build.zip ./dist
         shell: bash
 
         # [4]
