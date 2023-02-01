@@ -1,0 +1,64 @@
+name: CI-CD-Frontend
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+    branches:
+      - main
+
+env:
+  S3_BUCKET_NAME: hannuri
+  CODE_DEPLOY_APPLICATION_NAME: hannuri-code-deploy
+  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: hannuri-server
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # - name: Create env file
+      #   working-directory: ./frontend
+      #   run: |
+      #     touch .env
+      #     echo API_ENDPOINT="https://xxx.execute-api.us-west-2.amazonaws.com" >> .env
+      #     echo API_KEY=${{ secrets.API_KEY }} >> .env
+      #     cat .env
+      #   shell: bash
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: |
+          yarn
+          yarn build
+        shell: bash
+
+      - name: Make zip file
+        working-directory: ./frontend
+        run: zip -r ./build.zip ./build
+        shell: bash
+
+        # [4]
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+        # [5]
+      - name: Upload to S3
+        run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./build.zip s3://$S3_BUCKET_NAME/build.zip
+
+        # [6]
+      - name: Code Deploy
+        working-directory: ./frontend/deploy
+        run: |
+          aws deploy create-deployment \
+          --deployment-config-name CodeDeployDefault.AllAtOnce \
+          --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
+          --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
+          --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=build.zip

@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+files:
+  - source: build.zip
+    destination: /home/hannuri/static/frontend
+    overwrite: yes
+
+permissions:
+  - object: /
+    pattern: "**"
+    owner: ubuntu
+    group: ubuntu
+
+hooks:
+  ApplicationStart:
+    - location: /frontend/deploy/scripts/unzip.sh
+      timeout: 300
+      runas: ubuntu
