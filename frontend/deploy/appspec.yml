@@ -8,3 +8,7 @@ files:
 permissions:
   - object: /
     pattern: "**"
+
+hooks:
+  ApplicationStart:
+    - location: script/try.sh

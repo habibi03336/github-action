@@ -31,7 +31,7 @@ jobs:
         working-directory: ./frontend
         run: |
           cp ./deploy/appspec.yml ./appspec.yml
-          zip -r ./deploy-frontend.zip ./dist appspec.yml
+          zip -r ./deploy-frontend.zip ./dist appspec.yml ./deploy/script
         shell: bash
 
         # [4]
