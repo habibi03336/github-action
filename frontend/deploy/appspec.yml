@@ -11,4 +11,4 @@ permissions:
 
 hooks:
   ApplicationStart:
-    - location: script/try.sh
+    - location: deploy/script/try.sh
