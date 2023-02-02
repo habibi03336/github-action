@@ -1,1 +1,1 @@
-touch script-work.txt
+sudo touch script-work.txt
