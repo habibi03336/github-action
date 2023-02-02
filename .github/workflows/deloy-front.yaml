@@ -38,7 +38,11 @@ jobs:
 
       - name: Make zip file
         working-directory: ./frontend
-        run: zip -r ./build.zip ./dist
+        run: |
+          cd ./deploy
+          cp appspec.yml ../appspec.yml
+          cd ..
+          zip -r ./deploy-frontend.zip ./dist appspec.yml
         shell: bash
 
         # [4]
@@ -52,14 +56,14 @@ jobs:
         # [5]
       - name: Upload to S3
         working-directory: ./frontend
-        run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./build.zip s3://$S3_BUCKET_NAME/build.zip
+        run: |
+          aws s3 cp --region ${{ secrets.AWS_REGION }} ./deploy-frontend.zip s3://$S3_BUCKET_NAME/deploy-frontend.zip
 
-        # [6]
+        # [6] ???
       - name: Code Deploy
-        working-directory: ./frontend/deploy
         run: |
           aws deploy create-deployment \
           --deployment-config-name CodeDeployDefault.AllAtOnce \
           --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
           --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-          --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=build.zip
+          --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=deploy-frontend.zip
