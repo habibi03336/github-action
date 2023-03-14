@@ -22,6 +22,5 @@ jobs:
       - name: Build Frontend
         working-directory: ./frontend
         run: |
-          echo ${{ var.TEST_ECHO }}
           echo ${{ secrets.TEST_ECHO }}
         shell: bash
