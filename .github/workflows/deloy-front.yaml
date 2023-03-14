@@ -1,20 +1,19 @@
 name: CI-CD-Frontend
 
 on:
+ workflow_dispatch:
+    branches:
+      - master
   push:
     paths:
       - "frontend/**"
     branches:
       - master
 
-env:
-  S3_BUCKET_NAME: hannuri
-  CODE_DEPLOY_APPLICATION_NAME: hannuri-code-deploy
-  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: hannuri-server
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout
@@ -23,36 +22,5 @@ jobs:
       - name: Build Frontend
         working-directory: ./frontend
         run: |
-          yarn
-          yarn build
+          echo ${{ env.TEST_ECHO }}
         shell: bash
-
-      - name: Make zip file
-        working-directory: ./frontend
-        run: |
-          cp ./deploy/appspec.yml ./appspec.yml
-          zip -r ./deploy-frontend.zip ./dist appspec.yml ./deploy/script
-        shell: bash
-
-        # [4]
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-        # [5]
-      - name: Upload to S3
-        working-directory: ./frontend
-        run: |
-          aws s3 cp --region ${{ secrets.AWS_REGION }} ./deploy-frontend.zip s3://$S3_BUCKET_NAME/deploy-frontend.zip
-
-        # [6] ???
-      - name: Code Deploy
-        run: |
-          aws deploy create-deployment \
-          --deployment-config-name CodeDeployDefault.AllAtOnce \
-          --application-name ${{ env.CODE_DEPLOY_APPLICATION_NAME }} \
-          --deployment-group-name ${{ env.CODE_DEPLOY_DEPLOYMENT_GROUP_NAME }} \
-          --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=deploy-frontend.zip
